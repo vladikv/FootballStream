@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>FootballStream Dashboard</title>
+</head>
+<body>
+<h1>FootballStream</h1>
+
+<select onchange="location = '/?leagueId=' + this.value;">
+    <option th:each="league : ${leagues}"
+            th:value="${league.id}"
+            th:selected="${league.id == selectedLeagueId}"
+            th:text="${league.name}">
+    </option>
+</select>
+
+<h2>Standings</h2>
+<table border="1">
+    <tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr>
+    <tr th:each="s : ${standings}">
+        <td th:text="${s.position}"></td>
+        <td th:text="${s.team.name}"></td>
+        <td th:text="${s.played}"></td>
+        <td th:text="${s.won}"></td>
+        <td th:text="${s.draw}"></td>
+        <td th:text="${s.lost}"></td>
+        <td th:text="${s.points}"></td>
+    </tr>
+</table>
+
+<h2>Recent Matches</h2>
+<ul>
+    <li th:each="m : ${recentMatches}"
+        th:text="${m.homeTeam.name + ' ' + m.homeScore + ' - ' + m.awayScore + ' ' + m.awayTeam.name}">
+    </li>
+</ul>
+
+<h2>Top Scorers</h2>
+<ol>
+    <li th:each="p : ${topScorers}"
+        th:text="${p.player.name + ' — ' + p.goals + ' goals'}">
+    </li>
+</ol>
+</body>
+</html>
