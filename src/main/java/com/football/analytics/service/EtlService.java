@@ -63,17 +63,55 @@ public class EtlService {
             String json = apiClient.getMatches(leagueCode);
             JsonNode root = objectMapper.readTree(json);
 
+            League league = leagueRepository.findByCode(leagueCode)
+                    .orElseThrow(() -> new IllegalStateException("League not synced: " + leagueCode));
+
             for (JsonNode matchNode : root.path("matches")) {
-                MatchEvent event = toMatchEvent(matchNode, leagueCode);
-                if (event != null) {
-                    producer.publish(event);
-                }
+                MatchEvent event = toMatchEvent(matchNode, leagueCode, league);
+                producer.publish(event);
             }
 
             log.info("Synced matches for league {}", leagueCode);
         } catch (Exception e) {
             log.error("Failed to sync matches for {}: {}", leagueCode, e.getMessage());
         }
+    }
+
+    private MatchEvent toMatchEvent(JsonNode matchNode, String leagueCode, League league) {
+        JsonNode homeTeamNode = matchNode.path("homeTeam");
+        JsonNode awayTeamNode = matchNode.path("awayTeam");
+        JsonNode scoreNode = matchNode.path("score").path("fullTime");
+
+        // Create the team on the fly if it hasn't been synced via /standings yet —
+        // this stops matches from being silently dropped.
+        Team homeTeam = resolveOrCreateTeam(homeTeamNode, league);
+        Team awayTeam = resolveOrCreateTeam(awayTeamNode, league);
+
+        return new MatchEvent(
+                matchNode.path("id").asInt(),
+                leagueCode,
+                homeTeamNode.path("name").asText(),
+                awayTeamNode.path("name").asText(),
+                homeTeam.getApiId(),
+                awayTeam.getApiId(),
+                scoreNode.path("home").isNull() ? null : scoreNode.path("home").asInt(),
+                scoreNode.path("away").isNull() ? null : scoreNode.path("away").asInt(),
+                matchNode.path("matchday").asInt(),
+                matchNode.path("status").asText(),
+                OffsetDateTime.parse(matchNode.path("utcDate").asText())
+        );
+    }
+
+    private Team resolveOrCreateTeam(JsonNode teamNode, League league) {
+        Integer apiId = teamNode.path("id").asInt();
+        return teamRepository.findByApiId(apiId).orElseGet(() -> {
+            Team team = new Team();
+            team.setApiId(apiId);
+            team.setName(teamNode.path("name").asText());
+            team.setCrestUrl(teamNode.path("crest").asText(""));
+            team.setLeague(league);
+            return teamRepository.save(team);
+        });
     }
 
     private League upsertLeague(JsonNode competitionNode, String leagueCode) {
@@ -179,9 +217,11 @@ public class EtlService {
         Integer playerApiId = playerNode.path("id").asInt();
         Integer teamApiId = teamNode.path("id").asInt();
 
+        log.info("Scorer raw entry: {}", entry.toString());
+
         Team team = teamRepository.findByApiId(teamApiId).orElse(null);
         if (team == null) {
-            // Team not synced yet — skip this scorer for now
+            log.warn("Team not found for scorer {} (teamApiId={})", playerNode.path("name").asText(), teamApiId);
             return;
         }
 
@@ -203,5 +243,6 @@ public class EtlService {
         stat.setPlayedMatches(entry.path("playedMatches").asInt(0));
 
         playerStatRepository.save(stat);
+        log.info("Saved player stat: {} — {} goals", player.getName(), stat.getGoals());
     }
 }

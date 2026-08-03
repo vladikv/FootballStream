@@ -28,7 +28,7 @@ public class FootballDataApiClient {
     }
 
     public String getMatches(String leagueCode) {
-        return getRaw("/competitions/" + leagueCode + "/matches?status=FINISHED,SCHEDULED");
+        return getRaw("/competitions/" + leagueCode + "/matches");
     }
 
     public String getScorers(String leagueCode) {

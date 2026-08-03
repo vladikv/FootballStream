@@ -1,46 +1,113 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="uk">
 <head>
     <meta charset="UTF-8">
-    <title>FootballStream Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FootballStream</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
 </head>
 <body>
-<h1>FootballStream</h1>
 
-<select onchange="location = '/?leagueId=' + this.value;">
-    <option th:each="league : ${leagues}"
-            th:value="${league.id}"
-            th:selected="${league.id == selectedLeagueId}"
-            th:text="${league.name}">
-    </option>
-</select>
+<div class="glow glow--a"></div>
+<div class="glow glow--b"></div>
 
-<h2>Standings</h2>
-<table border="1">
-    <tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>Pts</th></tr>
-    <tr th:each="s : ${standings}">
-        <td th:text="${s.position}"></td>
-        <td th:text="${s.team.name}"></td>
-        <td th:text="${s.played}"></td>
-        <td th:text="${s.won}"></td>
-        <td th:text="${s.draw}"></td>
-        <td th:text="${s.lost}"></td>
-        <td th:text="${s.points}"></td>
-    </tr>
-</table>
+<header class="topbar">
+    <div class="topbar__brand">
+        <span class="pulse-dot"></span>
+        FootballStream
+    </div>
+    <div class="topbar__meta" id="synced-at">just loaded</div>
+</header>
 
-<h2>Recent Matches</h2>
-<ul>
-    <li th:each="m : ${recentMatches}"
-        th:text="${m.homeTeam.name + ' ' + m.homeScore + ' - ' + m.awayScore + ' ' + m.awayTeam.name}">
-    </li>
-</ul>
+<nav class="league-tabs">
+    <a th:each="league : ${leagues}"
+       th:href="@{/(leagueId=${league.id})}"
+       th:text="${league.name}"
+       th:classappend="${league.id == selectedLeagueId} ? ' league-tab--active' : ''"
+       class="league-tab">
+    </a>
+</nav>
 
-<h2>Top Scorers</h2>
-<ol>
-    <li th:each="p : ${topScorers}"
-        th:text="${p.player.name + ' — ' + p.goals + ' goals'}">
-    </li>
-</ol>
+<main class="bento">
+
+    <section class="card card--standings">
+        <div class="card__head">
+            <h2>Standings</h2>
+        </div>
+        <div class="table-scroll">
+            <table class="table">
+                <thead>
+                <tr><th>#</th><th class="left">Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>
+                </thead>
+                <tbody>
+                <tr th:each="s : ${standings}">
+                    <td class="mono rank"><span th:text="${s.position}"></span></td>
+                    <td class="left team-cell">
+                        <img th:if="${s.team.crestUrl != null and !s.team.crestUrl.isEmpty()}"
+                             th:src="${s.team.crestUrl}" class="crest" alt="" loading="lazy">
+                        <span th:text="${s.team.name}"></span>
+                    </td>
+                    <td class="mono" th:text="${s.played}"></td>
+                    <td class="mono" th:text="${s.won}"></td>
+                    <td class="mono" th:text="${s.draw}"></td>
+                    <td class="mono" th:text="${s.lost}"></td>
+                    <td class="mono" th:text="${s.goalsFor - s.goalsAgainst}"></td>
+                    <td class="mono pts" th:text="${s.points}"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <section class="card card--matches">
+        <div class="card__head">
+            <h2>Matches</h2>
+            <div class="date-pill-nav">
+                <button id="date-prev" class="icon-btn" aria-label="Previous day">‹</button>
+                <input type="date" id="date-picker" class="date-input">
+                <button id="date-next" class="icon-btn" aria-label="Next day">›</button>
+            </div>
+        </div>
+        <ul class="match-list" id="match-list"></ul>
+    </section>
+
+    <section class="card card--scorers">
+        <div class="card__head"><h2>Top Scorers</h2></div>
+        <ol class="scorer-list">
+            <li class="scorer-row" th:each="p, iter : ${topScorers}">
+                <span class="scorer-rank" th:classappend="${iter.index < 3} ? ' scorer-rank--medal' : ''" th:text="${iter.index + 1}"></span>
+                <span class="scorer-name" th:text="${p.player.name}"></span>
+                <span class="scorer-goals mono" th:text="${p.goals}"></span>
+            </li>
+        </ol>
+        <p class="empty-note" th:if="${#lists.isEmpty(topScorers)}">No goals recorded yet this season.</p>
+    </section>
+
+    <section class="card card--form">
+        <div class="card__head"><h2>Team Form</h2></div>
+        <select id="form-team-select" class="select"></select>
+        <div class="chart-box"><canvas id="form-chart"></canvas></div>
+    </section>
+
+    <section class="card card--compare">
+        <div class="card__head"><h2>Compare</h2></div>
+        <div class="compare-selects">
+            <select id="compare-team-a" class="select"></select>
+            <span class="vs">VS</span>
+            <select id="compare-team-b" class="select"></select>
+        </div>
+        <div class="chart-box"><canvas id="compare-chart"></canvas></div>
+    </section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script th:inline="javascript">
+    const SELECTED_LEAGUE_ID = /*[[${selectedLeagueId}]]*/ null;
+</script>
+<script th:src="@{/js/charts.js}"></script>
+
 </body>
 </html>
