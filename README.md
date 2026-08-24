@@ -217,12 +217,6 @@ Every push to `main` triggers a GitHub Actions workflow that compiles the projec
 |---|---|
 | _screenshot pending_ | _screenshot pending_ |
 
-## 🗺 Roadmap
-
-- [ ] Resilience4j-based rate limiting instead of fixed sleep delays
-- [ ] Publish only changed matches to Kafka instead of the full list each cycle
-- [ ] WebSocket live-score push using the same `matches.raw` topic as a second consumer
-
 ## 📄 License
 
 MIT
