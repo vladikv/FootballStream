@@ -87,13 +87,6 @@ src/main/java/com/football/analytics/
 
 The free football-data.org tier allows 10 requests/minute. `MatchFetchScheduler` enforces a 7-second delay between requests per league to stay within that limit.
 
-## Roadmap
-
-- [ ] Automated tests (unit + integration)
-- [ ] Resilience4j-based rate limiting instead of fixed sleep delays
-- [ ] Publish only changed matches to Kafka instead of the full list each cycle
-- [ ] CI pipeline (GitHub Actions)
-
 ## License
 
 MIT
