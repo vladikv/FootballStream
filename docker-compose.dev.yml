@@ -1,0 +1,5 @@
+services:
+  app:
+    image: footballstream:local
+    build: .
+    pull_policy: build

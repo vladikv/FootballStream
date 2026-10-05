@@ -33,17 +33,49 @@ Built to demonstrate event-driven architecture, scheduled ETL, and a full Java b
 git clone https://github.com/vladikv/FootballStream.git
 cd FootballStream
 
-echo "FOOTBALL_DATA_TOKEN=your_token_here" > .env
+cp .env.example .env
+# Edit .env and replace your_token_here with your football-data.org API token.
 
-docker compose up -d --build
+docker compose up -d
 ```
+
+By default, Compose runs the published `ghcr.io/vladikv/footballstream:latest` image; it does not build the application from source. Set `FOOTBALLSTREAM_IMAGE_TAG` in `.env` to select another published tag, such as a `sha-...` tag.
+
+The published GHCR package is currently public, so no registry login is needed to pull it. If the package is made private, authenticate first with a GitHub personal access token (classic) that has `read:packages` access:
+
+```bash
+docker login ghcr.io -u YOUR_GITHUB_USERNAME
+```
+
+Enter the token at Docker's password prompt; do not put it in a command, `.env`, or the repository. Whether login is needed depends on the package's visibility and your access.
 
 | Service | URL |
 |---|---|
 | 📊 Dashboard | [http://localhost:8080](http://localhost:8080) |
 | 📡 Kafka UI | [http://localhost:8081](http://localhost:8081) |
 
+Stop the services with `docker compose down`. PostgreSQL data remains in the named volume; use `docker compose down -v` only if you also want to delete that data.
+
 Data starts populating automatically within 2–3 minutes as the scheduler runs its first sync cycle.
+
+<details>
+<summary><strong>Build and run from source instead</strong></summary>
+
+<br>
+
+To build the application locally rather than pull the published image, run:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d --build
+```
+
+Stop this stack with the same file options:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.dev.yml down
+```
+
+</details>
 
 <details>
 <summary><strong>What happens on first startup?</strong></summary>
