@@ -59,7 +59,8 @@ services:
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
 
   app:
-    build: .
+    image: ghcr.io/vladikv/footballstream:${FOOTBALLSTREAM_IMAGE_TAG:-latest}
+    pull_policy: always
     container_name: football-app
     restart: unless-stopped
     depends_on:
@@ -74,7 +75,7 @@ services:
       SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
-      FOOTBALL_DATA_TOKEN: ${FOOTBALL_DATA_TOKEN}
+      FOOTBALL_DATA_TOKEN: ${FOOTBALL_DATA_TOKEN:?Set FOOTBALL_DATA_TOKEN in .env}
 
 volumes:
   postgres_data:
