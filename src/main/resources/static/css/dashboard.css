@@ -173,12 +173,18 @@ body {
 /* Select */
 .select {
     background: rgba(255,255,255,0.04); color: var(--text);
+    color-scheme: dark;
     border: 1px solid var(--border); border-radius: 10px;
     padding: 9px 12px; font-size: 14px; width: 100%; max-width: 280px; cursor: pointer;
     transition: border-color .2s;
 }
 .select:hover { border-color: rgba(255,255,255,0.25); }
 .select:focus-visible { outline: 2px solid var(--emerald); outline-offset: 2px; }
+
+.select option {
+    background: #0B0F14;  /* explicit fallback for browsers that ignore color-scheme */
+    color: #F3F5F9;
+}
 
 /* Date nav */
 .date-pill-nav { display: flex; align-items: center; gap: 6px; }
