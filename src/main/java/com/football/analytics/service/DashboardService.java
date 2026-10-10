@@ -60,6 +60,13 @@ public class DashboardService {
         return teamRepository.findByLeagueIdOrderByNameAsc(leagueId);
     }
 
+    // Latest season that actually exists in the DB for this league
+    public int getCurrentSeasonYear(Long leagueId) {
+        return standingRepository.findFirstByLeagueIdOrderBySeasonYearDesc(leagueId)
+                .map(Standing::getSeasonYear)
+                .orElse(Year.now().getValue());
+    }
+
     // Builds the last-N-matches form summary for a single team (used by the sparkline chart)
     public TeamFormDto getTeamForm(Long teamId, int lastN) {
         Team team = teamRepository.findById(teamId)
@@ -96,16 +103,17 @@ public class DashboardService {
 
     // Builds a side-by-side comparison of two teams based on current-season standings
     public TeamCompareDto compareTeams(Long teamAId, Long teamBId) {
-        int seasonYear = Year.now().getValue();
         return new TeamCompareDto(
-                buildSummary(teamAId, seasonYear),
-                buildSummary(teamBId, seasonYear)
+                buildSummary(teamAId),
+                buildSummary(teamBId)
         );
     }
 
-    private TeamCompareDto.TeamSummary buildSummary(Long teamId, Integer seasonYear) {
+    private TeamCompareDto.TeamSummary buildSummary(Long teamId) {
         Team team = teamRepository.findById(teamId)
                 .orElseThrow(() -> new IllegalArgumentException("Team not found: " + teamId));
+
+        int seasonYear = getCurrentSeasonYear(team.getLeague().getId());
 
         Optional<Standing> standing = standingRepository
                 .findByLeagueIdAndTeamIdAndSeasonYear(team.getLeague().getId(), teamId, seasonYear);

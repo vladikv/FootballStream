@@ -9,6 +9,8 @@ import com.football.analytics.model.dto.MatchEvent;
 import com.football.analytics.producer.MatchEventProducer;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+
+import java.time.LocalDate;
 import java.time.Year;
 
 
@@ -26,6 +28,15 @@ public class EtlService {
     PlayerRepository playerRepository;
     PlayerStatRepository playerStatRepository;
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    // package-private + static so it can be unit-tested directly
+    static int extractSeasonYear(JsonNode root) {
+        String startDate = root.path("season").path("startDate").asText("");
+        if (!startDate.isEmpty()) {
+            return LocalDate.parse(startDate).getYear();
+        }
+        return Year.now().getValue(); // fallback if the API omits the season
+    }
 
     public EtlService(FootballDataApiClient apiClient,
                       MatchEventProducer producer,
@@ -49,7 +60,7 @@ public class EtlService {
             JsonNode root = objectMapper.readTree(json);
 
             League league = upsertLeague(root.path("competition"), leagueCode);
-            int seasonYear = Year.now().getValue(); // додай імпорт java.time.Year
+            int seasonYear = extractSeasonYear(root);
 
             JsonNode table = root.path("standings").get(0).path("table");
             for (JsonNode row : table) {
