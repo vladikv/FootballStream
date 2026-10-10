@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.lang.reflect.Method;
+import java.time.Year;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,6 +36,18 @@ class EtlServiceTest {
                 mock(PlayerRepository.class),
                 mock(PlayerStatRepository.class)
         );
+    }
+
+    @Test
+    void extractSeasonYear_readsStartYearFromApiResponse() throws Exception {
+        JsonNode root = objectMapper.readTree("{\"season\": {\"startDate\": \"2026-08-21\"}}");
+        assertEquals(2026, EtlService.extractSeasonYear(root));
+    }
+
+    @Test
+    void extractSeasonYear_fallsBackToCurrentYear_whenSeasonMissing() throws Exception {
+        JsonNode root = objectMapper.readTree("{}");
+        assertEquals(Year.now().getValue(), EtlService.extractSeasonYear(root));
     }
 
     @Test

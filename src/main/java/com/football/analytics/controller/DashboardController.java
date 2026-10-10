@@ -15,6 +15,7 @@ public class DashboardController {
     private final DashboardService dashboardService;
     private final LeagueRepository leagueRepository;
 
+
     public DashboardController(DashboardService dashboardService, LeagueRepository leagueRepository) {
         this.dashboardService = dashboardService;
         this.leagueRepository = leagueRepository;
@@ -31,10 +32,10 @@ public class DashboardController {
         model.addAttribute("selectedLeagueId", resolvedLeagueId);
 
         if (resolvedLeagueId != null) {
-            int currentYear = Year.now().getValue();
-            model.addAttribute("standings", dashboardService.getStandings(resolvedLeagueId, currentYear));
+            int seasonYear = dashboardService.getCurrentSeasonYear(resolvedLeagueId);
+            model.addAttribute("standings", dashboardService.getStandings(resolvedLeagueId, seasonYear));
+            model.addAttribute("topScorers", dashboardService.getTopScorers(resolvedLeagueId, seasonYear));
             model.addAttribute("recentMatches", dashboardService.getRecentMatches(resolvedLeagueId));
-            model.addAttribute("topScorers", dashboardService.getTopScorers(resolvedLeagueId, currentYear));
         }
 
         return "dashboard";
