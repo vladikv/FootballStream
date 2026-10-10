@@ -31,12 +31,16 @@ public class EtlService {
                       MatchEventProducer producer,
                       LeagueRepository leagueRepository,
                       TeamRepository teamRepository,
-                      StandingRepository standingRepository) {
+                      StandingRepository standingRepository,
+                      PlayerRepository playerRepository,
+                      PlayerStatRepository playerStatRepository) {
         this.apiClient = apiClient;
         this.producer = producer;
         this.leagueRepository = leagueRepository;
         this.teamRepository = teamRepository;
         this.standingRepository = standingRepository;
+        this.playerRepository = playerRepository;
+        this.playerStatRepository = playerStatRepository;
     }
 
     public void syncLeagueTeamsAndStandings(String leagueCode) {
@@ -49,7 +53,7 @@ public class EtlService {
 
             JsonNode table = root.path("standings").get(0).path("table");
             for (JsonNode row : table) {
-                upsertTeam(row, league, seasonYear); // передаємо весь row, не тільки team-піднод
+                upsertTeam(row, league, seasonYear);
             }
 
             log.info("Synced teams/standings for league {}", leagueCode);

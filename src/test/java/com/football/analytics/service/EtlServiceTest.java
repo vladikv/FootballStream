@@ -6,9 +6,7 @@ import com.football.analytics.client.FootballDataApiClient;
 import com.football.analytics.model.entity.League;
 import com.football.analytics.model.entity.Team;
 import com.football.analytics.producer.MatchEventProducer;
-import com.football.analytics.repository.LeagueRepository;
-import com.football.analytics.repository.StandingRepository;
-import com.football.analytics.repository.TeamRepository;
+import com.football.analytics.repository.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -33,7 +31,9 @@ class EtlServiceTest {
                 mock(MatchEventProducer.class),
                 mock(LeagueRepository.class),
                 teamRepository,
-                mock(StandingRepository.class)
+                mock(StandingRepository.class),
+                mock(PlayerRepository.class),
+                mock(PlayerStatRepository.class)
         );
     }
 
