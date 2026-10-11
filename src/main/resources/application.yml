@@ -10,12 +10,11 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.PostgreSQLDialect
+      ddl-auto: validate
+    flyway:
+      enabled: true
+      baseline-on-migrate: true # existing DB without history: treat it as already at V1
+      baseline-version: 1
 
   kafka:
     bootstrap-servers: localhost:9092
