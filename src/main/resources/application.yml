@@ -11,7 +11,7 @@ spring:
   jpa:
     hibernate:
       ddl-auto: validate
-    flyway:
+  flyway:
       enabled: true
       baseline-on-migrate: true # existing DB without history: treat it as already at V1
       baseline-version: 1
@@ -39,3 +39,13 @@ football-data:
     base-url: https://api.football-data.org/v4
     token: ${FOOTBALL_DATA_TOKEN:}
     leagues: PL,PD,SA,BL1,FL1
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health   # expose ONLY health, nothing else
+  endpoint:
+    health:
+      show-details: never # status only (UP/DOWN), no internals leaked
